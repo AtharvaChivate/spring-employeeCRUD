@@ -3,6 +3,12 @@ package com.example.demo.User;
 //package com.example.crudapp.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Size;
+
 import java.time.LocalDate;
 
 @Entity
@@ -13,11 +19,24 @@ public class Employee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "First name cannot be empty")
+    @Size(min = 2, message = "First name must have at least 2 characters")
     private String firstName;
+    
+    @NotBlank(message = "Last name cannot be empty")
     private String lastName;
+
+    @NotBlank(message = "Email cannot be empty")
+    @Email(message = "Invalid email format")
     private String email;
+    
+    @Min(value = 0, message = "salary must atleast be 0")
     private Double salary;
+    
+    @NotBlank(message = "department name cannot be empty")
     private String department;
+    
+    @PastOrPresent(message = "Joining date must be today or in the past")
     private LocalDate joiningDate;
 
     // Constructors
