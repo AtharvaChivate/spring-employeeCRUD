@@ -3,7 +3,6 @@ package com.example.demo.Controller;
 import com.example.demo.Model.AppUser;
 import com.example.demo.Repository.UserRepository;
 import com.example.demo.Security.JwtUtil;
-import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,8 +17,8 @@ public class AuthController {
 
 	private AuthenticationManager authenticationManager;
     private JwtUtil jwtUtil;
-	private final UserRepository userRepository;
-	private final PasswordEncoder passwordEncoder;
+	// private final UserRepository userRepository;
+	// private final PasswordEncoder passwordEncoder;
 
 	
 	public AuthController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, UserRepository userRepository,
@@ -27,19 +26,19 @@ public class AuthController {
 		super();
 		this.authenticationManager = authenticationManager;
 		this.jwtUtil = jwtUtil;
-		this.userRepository = userRepository;
-		this.passwordEncoder = passwordEncoder;
+		// this.userRepository = userRepository;
+		// this.passwordEncoder = passwordEncoder;
 	}
 
-	@PostMapping("/register")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody AppUser user) {
-		if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-			return ResponseEntity.badRequest().body("Username already exists");
-		}
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		userRepository.save(user);
-		return ResponseEntity.ok("User registered successfully!");
-	}
+	// @PostMapping("/register")
+	// public ResponseEntity<?> registerUser(@Valid @RequestBody AppUser user) {
+	// 	if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+	// 		return ResponseEntity.badRequest().body("Username already exists");
+	// 	}
+	// 	user.setPassword(passwordEncoder.encode(user.getPassword()));
+	// 	userRepository.save(user);
+	// 	return ResponseEntity.ok("User registered successfully!");
+	// }
 	
 	@PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AppUser loginRequest) {
