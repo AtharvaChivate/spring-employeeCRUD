@@ -24,6 +24,15 @@ public class AppUser {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+    
+    public AppUser() {}
+
+	public AppUser(@NotBlank(message = "Username is required") String username,
+			@NotBlank(message = "Password is required") String password) {
+		super();
+		this.username = username;
+		this.password = password;
+	}
 
 	public String getUsername() {
 		return username;
