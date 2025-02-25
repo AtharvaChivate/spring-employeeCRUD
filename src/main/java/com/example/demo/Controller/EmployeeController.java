@@ -1,5 +1,6 @@
 package com.example.demo.Controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 
 import com.example.demo.Model.AppUser;
@@ -8,6 +9,7 @@ import com.example.demo.Model.Role;
 import com.example.demo.Repository.UserRepository;
 import com.example.demo.Service.EmployeeService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -47,22 +49,35 @@ public class EmployeeController {
     	
     	Optional<Employee> employee = employeeService.getEmployeeById(id);
     	
-    	// Employee can only view their own details
-    	if(employee.isPresent()) {
-    		AppUser loggedInuser = userRepository.findByUsername(employee.get().getEmail()).orElse(null);
-    		if(loggedInuser != null && loggedInuser.getUsername().equals(employee.get().getEmail())) {
-    			return ResponseEntity.ok(employee.get());
-    		}
-    		return ResponseEntity.status(403).body("Access Denied. You can only view your own profile.");
-    	}
-    	return ResponseEntity.notFound().build();
+        if (!employee.isPresent()) {
+            throw new EntityNotFoundException("Employee with ID " + id + " not found");
+        }
+    	
+        // Employee can only view their own details
+        AppUser loggedInuser = userRepository.findByUsername(employee.get().getEmail()).orElse(null);
+        if (loggedInuser == null || !loggedInuser.getUsername().equals(employee.get().getEmail())) {
+            throw new AccessDeniedException("Access Denied. You can only view your own profile.");
+        }
+
+        return ResponseEntity.ok(employee.get());
     }  
     
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<?> createEmployee(@Valid @RequestBody Employee employee, BindingResult result) {
         if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body(getValidationErrors(result));
+            Map<String, String> errors = new HashMap<>();
+            result.getFieldErrors().forEach(error -> 
+                errors.put(error.getField(), error.getDefaultMessage()));
+            
+            return ResponseEntity.badRequest().body(errors);
+        }
+        
+        // Check if email already exists
+        if (employeeService.existsByEmail(employee.getEmail())) {
+            Map<String, String> errors = new HashMap<>();
+            errors.put("email", "Email already exists");
+            return ResponseEntity.badRequest().body(errors);
         }
         
         // Creating new user for Authentication
@@ -78,12 +93,13 @@ public class EmployeeController {
         
         // Linking the user to employee
         employee.setAppUser(appUser);
-        employee.setJoiningDate(LocalDate.now());
+        if (employee.getJoiningDate() == null) {
+            employee.setJoiningDate(LocalDate.now());
+        }
         Employee savedEmployee = employeeService.createEmployee(employee);
         
         System.out.println("Employee Created Successfully! Default password is 123");
-        
-        return ResponseEntity.ok("Employee Created Successfully! Default password is 123");
+        return ResponseEntity.ok(savedEmployee);
     }
     
     private Map<String, String> getValidationErrors(BindingResult result) {

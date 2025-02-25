@@ -7,5 +7,5 @@ import com.example.demo.Model.Employee;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
-    
+	boolean existsByEmail(String email);
 }

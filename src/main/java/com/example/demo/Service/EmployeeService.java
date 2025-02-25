@@ -41,5 +41,10 @@ public class EmployeeService {
     public void deleteEmployee(Long id) {
         employeeRepository.deleteById(id);
     }
+    
+    public boolean existsByEmail(String email) {
+        return employeeRepository.existsByEmail(email);
+    }
+    
 }
 

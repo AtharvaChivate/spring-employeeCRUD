@@ -1,8 +1,11 @@
 package com.example.demo.Security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -33,36 +36,56 @@ public class JwtUtil {
 				.compact();
 	}
 	
-	// Validate the JWT Token
-	public boolean validateToken(String token) {
-		try {
-			Jwts.parser()
-				.verifyWith(getSigningKey())
-				.build()
-				.parseSignedClaims(token);
-			
-			System.out.println("Token is validated Successfully");
-			return true;
-		}catch(JwtException e) {
-			System.out.println("Error in token validation: " + e.getMessage());
-			return false;
-		}
-	}
+	// Validate the JWT Token with specific error messages
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token);
+            
+            System.out.println("Token is validated Successfully");
+            return true;
+        } catch(ExpiredJwtException e) {
+            System.out.println("Token has expired: " + e.getMessage());
+            throw new JwtException("Token has expired");
+        } catch(SecurityException e) {
+            System.out.println("Invalid JWT signature: " + e.getMessage());
+            throw new JwtException("Invalid JWT signature");
+        } catch(MalformedJwtException e) {
+            System.out.println("Invalid JWT token: " + e.getMessage());
+            throw new JwtException("Invalid JWT token format");
+        } catch(DecodingException e) {
+            System.out.println("JWT decoding failed: " + e.getMessage());
+            throw new JwtException("JWT decoding failed");
+        } catch(JwtException e) {
+            System.out.println("Error in token validation: " + e.getMessage());
+            throw new JwtException("JWT validation error: " + e.getMessage());
+        } catch(Exception e) {
+            System.out.println("Unexpected error in token validation: " + e.getMessage());
+            throw new JwtException("Unexpected error in token validation");
+        }
+    }
+	
 	
 	// Extract username from the token
-	public String extractUsername(String token) {
-		try {
-			Claims claims = Jwts.parser()
-							.verifyWith(getSigningKey())
-							.build()
-							.parseSignedClaims(token)
-							.getPayload();
-			
-			System.out.println("Username extracted from the token");
-			return claims.getSubject();
-		}catch(JwtException e) {
-			System.out.println("Token is invalid: " + e.getMessage());
-			return null;
-		}
-	}
+    public String extractUsername(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                            .verifyWith(getSigningKey())
+                            .build()
+                            .parseSignedClaims(token)
+                            .getPayload();
+            
+            System.out.println("Username extracted from the token");
+            return claims.getSubject();
+        } catch(ExpiredJwtException e) {
+            // Special case: if token is expired but we still want to extract the username
+            System.out.println("Token is expired but extracting username anyway");
+            return e.getClaims().getSubject();
+        } catch(JwtException e) {
+            System.out.println("Token is invalid: " + e.getMessage());
+            throw new JwtException("Cannot extract username: " + e.getMessage());
+        }
+    }
 }
