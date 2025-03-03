@@ -102,3 +102,31 @@ body {
   .employee-details th {
     width: 150px;
   }
+
+  .header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .logout-button {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .logout-button:hover {
+    background-color: #c0392b;
+  }
+
+  .info-message {
+    background-color: #d9edf7;
+    color: #31708f;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+  }
