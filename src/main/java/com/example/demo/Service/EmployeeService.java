@@ -46,5 +46,8 @@ public class EmployeeService {
         return employeeRepository.existsByEmail(email);
     }
     
+    public Optional<Employee> findByAppUserId(Long appUserId) {
+        return employeeRepository.findByAppUserId(appUserId);
+    }
 }
 
