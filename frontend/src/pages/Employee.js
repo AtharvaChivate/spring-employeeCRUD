@@ -15,6 +15,8 @@ const Employee = () => {
     salary: "",
     department: "",
     joiningDate: "",
+    username: "",
+    password: "",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
@@ -26,6 +28,7 @@ const Employee = () => {
       if (!id || id === "undefined") {
         setMessage("Employee ID is not provided");
         setLoading(false);
+        navigate("/");
         return;
       }
 
@@ -38,7 +41,12 @@ const Employee = () => {
             },
           }
         );
-        setEmployee(response.data);
+        const data = response.data;
+        setEmployee({
+          ...data,
+          username: data.email,
+          password: "",
+        });
         setLoading(false);
       } catch (error) {
         console.error("Error fetching employee:", error);
@@ -87,6 +95,10 @@ const Employee = () => {
       }
     }
 
+    if (employee.password && employee.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -96,7 +108,6 @@ const Employee = () => {
     setErrors({});
     setMessage("");
 
-    // If ID is undefined, show an error message
     if (!id || id === "undefined") {
       setMessage("Employee ID is not provided");
       return;
@@ -108,8 +119,11 @@ const Employee = () => {
       const updateData = {
         ...employee,
         salary: employee.salary ? parseFloat(employee.salary) : 0,
+        username: undefined, // Exclude username from profile update
+        password: undefined, // Exclude password from profile update
       };
 
+      // Update employee profile (excluding username and password)
       await axios.put(`http://localhost:8080/api/employees/${id}`, updateData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -117,15 +131,32 @@ const Employee = () => {
         },
       });
 
+      // Update credentials if username or password changed
+      const credentialData = {};
+      if (employee.username !== employee.email)
+        credentialData.username = employee.username;
+      if (employee.password) credentialData.password = employee.password;
+
+      if (Object.keys(credentialData).length > 0) {
+        const credentialResponse = await axios.put(
+          `http://localhost:8080/api/employees/${id}/update-credentials`,
+          credentialData,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("Credential update response:", credentialResponse.data);
+      }
+
       setMessage("Profile updated successfully");
     } catch (error) {
       console.error("Update error:", error);
-
       if (error.response) {
         const responseData = error.response.data;
         console.log("Server error response:", responseData);
-
-        // Handle validation errors from server
         if (typeof responseData === "object" && !Array.isArray(responseData)) {
           setErrors(responseData);
           setMessage("Please correct the errors in the form");
@@ -190,9 +221,33 @@ const Employee = () => {
               name="email"
               placeholder="Email"
               value={employee.email || ""}
-              readOnly // Email can't be changed as it's the username
+              onChange={handleChange}
             />
             {errors.email && <p className="error">{errors.email}</p>}
+          </div>
+
+          <div className="form-group">
+            <label>Username:</label>
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={employee.username || ""}
+              onChange={handleChange}
+            />
+            {errors.username && <p className="error">{errors.username}</p>}
+          </div>
+
+          <div className="form-group">
+            <label>New Password (leave blank to keep current):</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="New Password"
+              value={employee.password || ""}
+              onChange={handleChange}
+            />
+            {errors.password && <p className="error">{errors.password}</p>}
           </div>
 
           <div className="form-group">
