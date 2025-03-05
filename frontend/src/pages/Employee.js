@@ -33,6 +33,11 @@ const Employee = () => {
       }
 
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("No token found");
+        }
+
         const response = await axios.get(
           `http://localhost:8080/api/employees/${id}`,
           {
@@ -44,7 +49,7 @@ const Employee = () => {
         const data = response.data;
         setEmployee({
           ...data,
-          username: data.email,
+          username: getUsernameFromToken(token),
           password: "",
         });
         setLoading(false);
@@ -62,6 +67,17 @@ const Employee = () => {
     };
     fetchEmployee();
   }, [id, navigate]);
+
+  // Extract username from JWT token
+  const getUsernameFromToken = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1])); // Decode base64 payload
+      return payload.sub; // Matches JwtUtil's "sub" claim
+    } catch (e) {
+      console.error("Error decoding token:", e);
+      return "";
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -295,12 +311,7 @@ const Employee = () => {
         </form>
       )}
 
-      <div className="employee-profile">
-        <div className="header-controls">
-          <h2>Employee Profile</h2>
-          <LogoutButton />
-        </div>
-      </div>
+      <LogoutButton />
     </div>
   );
 };

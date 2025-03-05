@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
 import LogoutButton from "../pages/LogoutButton";
-import AuthCheck from '../utils/AuthCheck';
+import AuthCheck from "../utils/AuthCheck";
 
 const Admin = () => {
-  AuthCheck('ADMIN');
+  AuthCheck("ADMIN");
   const [action, setAction] = useState("");
   const [employee, setEmployee] = useState({
     firstName: "",
@@ -456,12 +456,7 @@ const Admin = () => {
         </div>
       )}
 
-      <div className="admin-dashboard">
-        <div className="header-controls">
-          <h2>Admin Dashboard</h2>
-          <LogoutButton />
-        </div>
-      </div>
+      <LogoutButton />
     </div>
   );
 };
